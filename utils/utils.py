@@ -658,7 +658,7 @@ def plot_targets_txt():  # from utils.utils import *; plot_targets_txt()
     plt.savefig('targets.jpg', dpi=300)
 
 
-def plot_results(start=0, stop=0, outdir):  # from utils.utils import *; plot_results()
+def plot_results(outdir, start=0, stop=0):  # from utils.utils import *; plot_results()
     # Plot training results files 'results*.txt'
     # import os; os.system('wget https://storage.googleapis.com/ultralytics/yolov3/results_v3.txt')
 
