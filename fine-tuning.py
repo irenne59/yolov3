@@ -342,7 +342,7 @@ if __name__ == '__main__':
 
     # Train
     results = train(opt.cfg,
-                    opt.data_cfg,
+                    opt.data,
                     img_size=opt.img_size,
                     epochs=opt.epochs,
                     batch_size=opt.batch_size,
