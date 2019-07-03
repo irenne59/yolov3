@@ -360,7 +360,7 @@ if __name__ == '__main__':
                     outdir = opt.outdir, 
                     pretrained_weight = opt.pretrainedweight)
 
-    plot_results(0,opt.epochs, opt.outdir)
+    plot_results(opt.outdir, 0, opt.epochs)
     # Evolve hyperparameters (optional)
     if opt.evolve:
         gen = 1000  # generations to evolve
