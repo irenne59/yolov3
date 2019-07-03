@@ -55,15 +55,20 @@ def train(
 ):
     init_seeds()
 
-
+    weights =  'weights' + os.sep
+    
     #------------------------------------
     # get current timestamp
     #------------------------------------
     ts = time.gmtime()
     currentDateTime = time.strftime("%Y%m%d_%H%M%S", ts)
-    weights =  'weights' + os.sep
-    latest = outdir  + '_' + currentDateTime + os.sep + 'latest.pt'
-    best = outdir  + '_' + currentDateTime + os.sep + 'best.pt'
+    outdir = outdir + '_' + currentDateTime
+
+    print('Creating directory ' + outdir)
+    os.mkdir(outdir)
+
+    latest = outdir  + os.sep + 'latest.pt'
+    best = outdir  +  os.sep + 'best.pt'
     device = torch_utils.select_device()
     img_size_test = img_size  # image size for testing
     multi_scale = not opt.single_scale
@@ -113,7 +118,7 @@ def train(
             cutoff = load_darknet_weights(model, weights + 'darknet53.conv.74')
 
         # Remove old results
-        for f in glob.glob('*_batch*.jpg') + glob.glob('results.txt'):
+        for f in glob.glob(outdir + '/*_batch*.jpg') + glob.glob(outdir + '/results.txt'):
             os.remove(f)
 
     # Scheduler https://github.com/ultralytics/yolov3/issues/238
@@ -179,6 +184,9 @@ def train(
     results = (0, 0, 0, 0, 0)  # P, R, mAP, F1, test_loss
     n_burnin = min(round(nb / 5 + 1), 1000)  # burn-in batches
     t, t0 = time.time(), time.time()
+
+    resultFile = open(outdir + '/results.txt', 'w')
+
     for epoch in range(start_epoch, epochs):
         model.train()
         print(('\n%8s%12s' + '%10s' * 7) %
@@ -259,10 +267,10 @@ def train(
         if not (opt.notest or (opt.nosave and epoch < 10)) or epoch == epochs - 1:
             with torch.no_grad():
                 results, maps = test.test(cfg, data_cfg, batch_size=batch_size, img_size=img_size_test, model=model,
-                                          conf_thres=0.1)
+                                          conf_thres=0.5)
 
         # Write epoch results
-        with open('results.txt', 'a') as file:
+        with open(outdir + '/results.txt', 'a') as file:
             file.write(s + '%11.3g' * 5 % results + '\n')  # P, R, mAP, F1, test_loss
 
         # Update best loss
@@ -289,7 +297,7 @@ def train(
 
             # Save backup every 10 epochs (optional)
             if epoch > 0 and epoch % 10 == 0:
-                torch.save(chkpt, weights + 'backup%g.pt' % epoch)
+                torch.save(chkpt, outdir + '/backup%g.pt' % epoch)
 
             # Delete checkpoint
             del chkpt
@@ -352,6 +360,7 @@ if __name__ == '__main__':
                     outdir = opt.outdir, 
                     pretrained_weight = opt.pretrainedweight)
 
+    plot_results(0,opt.epochs, opt.outdir)
     # Evolve hyperparameters (optional)
     if opt.evolve:
         gen = 1000  # generations to evolve
