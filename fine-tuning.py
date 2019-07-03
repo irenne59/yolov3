@@ -50,7 +50,8 @@ def train(
         batch_size=8,
         accumulate=8,  # effective bs = batch_size * accumulate = 8 * 8 = 64
         freeze_backbone=False,
-        outdir='fine-tuning-out'
+        outdir='fine-tuning-out',
+        pretrained_weight='weights/yolov3.pt'
 ):
     init_seeds()
 
@@ -89,7 +90,7 @@ def train(
     nf = int(model.module_defs[model.yolo_layers[0] - 1]['filters'])  # yolo layer size (i.e. 255)
     if opt.resume or opt.transfer:  # Load previously saved model
         if opt.transfer:  # Transfer learning
-            chkpt = torch.load(weights + 'yolov3-spp.pt', map_location=device)
+            chkpt = torch.load(pretrained_weight, map_location=device)
             model.load_state_dict({k: v for k, v in chkpt['model'].items() if v.numel() > 1 and v.shape[0] != 255},
                                   strict=False)
             for p in model.parameters():
@@ -316,12 +317,12 @@ def print_mutation(hyp, results):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--epochs', type=int, default=100, help='number of epochs')
-    parser.add_argument('--batch-size', type=int, default=16, help='batch size')
+    parser.add_argument('--batchsize', type=int, default=16, help='batch size')
     parser.add_argument('--accumulate', type=int, default=8, help='number of batches to accumulate before optimizing')
     parser.add_argument('--cfg', type=str, default='/home/eiy_research_59/dbmodel221/yolov3.cfg', help='cfg file path')
     parser.add_argument('--data', type=str, default='/home/eiy_research_59/dbmodel221/dbmodel221.data', help='coco.data file path')
     parser.add_argument('--single-scale', action='store_true', help='train at fixed size (no multi-scale)')
-    parser.add_argument('--img-size', type=int, default=416, help='inference size (pixels)')
+    parser.add_argument('--imgsize', type=int, default=416, help='inference size (pixels)')
     parser.add_argument('--resume', action='store_true', help='resume training flag')
     parser.add_argument('--transfer', action='store_true', help='transfer learning flag')
     parser.add_argument('--num-workers', type=int, default=4, help='number of Pytorch DataLoader workers')
@@ -332,6 +333,7 @@ if __name__ == '__main__':
     parser.add_argument('--cloud-evolve', action='store_true', help='evolve hyperparameters from a cloud source')
     parser.add_argument('--var', default=0, type=int, help='debug variable')
     parser.add_argument('--outdir', default='fine-tuning-out', type=str, help='output directory')
+    parser.add_argument('--pretrainedweight', default='weights/yolov3.pt', type=str, help='pretrained weight dir')
     opt = parser.parse_args()
     print(opt)
 
@@ -343,11 +345,12 @@ if __name__ == '__main__':
     # Train
     results = train(opt.cfg,
                     opt.data,
-                    img_size=opt.img_size,
+                    img_size=opt.imgsize,
                     epochs=opt.epochs,
-                    batch_size=opt.batch_size,
+                    batch_size=opt.batchsize,
                     accumulate=opt.accumulate,
-                    outdir = opt.outdir)
+                    outdir = opt.outdir, 
+                    pretrained_weight = opt.pretrainedweight)
 
     # Evolve hyperparameters (optional)
     if opt.evolve:
