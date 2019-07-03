@@ -71,7 +71,7 @@ def test(
 
         # Compute loss
         if hasattr(model, 'hyp'):  # if model has loss hyperparameters
-            loss_i, _ = compute_loss(train_out, targets, model)
+            loss_i, _ = compute_loss(train_out, targets, model, True)
             loss += loss_i.item()
 
         # Run NMS
