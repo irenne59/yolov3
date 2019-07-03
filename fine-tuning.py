@@ -60,9 +60,9 @@ def train(
     #------------------------------------
     ts = time.gmtime()
     currentDateTime = time.strftime("%Y%m%d_%H%M%S", ts)
-    weights = outdir  + '_' + currentDateTime + os.sep + 'weights' + os.sep
-    latest = weights + 'latest.pt'
-    best = weights + 'best.pt'
+    weights =  'weights' + os.sep
+    latest = outdir  + '_' + currentDateTime + os.sep + 'latest.pt'
+    best = outdir  + '_' + currentDateTime + os.sep + 'best.pt'
     device = torch_utils.select_device()
     img_size_test = img_size  # image size for testing
     multi_scale = not opt.single_scale
