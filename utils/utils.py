@@ -658,7 +658,7 @@ def plot_targets_txt():  # from utils.utils import *; plot_targets_txt()
     plt.savefig('targets.jpg', dpi=300)
 
 
-def plot_results(start=0, stop=0):  # from utils.utils import *; plot_results()
+def plot_results(start=0, stop=0, outdir):  # from utils.utils import *; plot_results()
     # Plot training results files 'results*.txt'
     # import os; os.system('wget https://storage.googleapis.com/ultralytics/yolov3/results_v3.txt')
 
@@ -666,7 +666,7 @@ def plot_results(start=0, stop=0):  # from utils.utils import *; plot_results()
     ax = ax.ravel()
     s = ['X + Y', 'Width + Height', 'Confidence', 'Classification', 'Train Loss', 'Precision', 'Recall', 'mAP', 'F1',
          'Test Loss']
-    for f in sorted(glob.glob('results*.txt') + glob.glob('../../Downloads/results*.txt')):
+    for f in sorted(glob.glob(outdir + '/results.txt') + glob.glob(outdir + '/results.txt')):
         results = np.loadtxt(f, usecols=[2, 3, 4, 5, 6, 9, 10, 11, 12, 13]).T
         n = results.shape[1]  # number of rows
         x = range(start, min(stop, n) if stop else n)
@@ -675,4 +675,4 @@ def plot_results(start=0, stop=0):  # from utils.utils import *; plot_results()
             ax[i].set_title(s[i])
     fig.tight_layout()
     ax[4].legend()
-    fig.savefig('results.png', dpi=300)
+    fig.savefig(outdir + '/results.png', dpi=300)
