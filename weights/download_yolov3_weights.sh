@@ -18,6 +18,6 @@ wget -c https://pjreddie.com/media/files/darknet53.conv.74
 # ./darknet partial cfg/yolov3-tiny.cfg yolov3-tiny.weights yolov3-tiny.conv.15 15
 # mv yolov3-tiny.conv.15 ../
 
-python download_gdrive.py 1vFlbJ_dXPvtwaLLOu-twnjK4exdFiQ73 yolov3-spp.pt
-python download_gdrive.py 11uy0ybbOXA2hc-NJkJbbbkDwNX1QZDlz yolov3.pt
-python download_gdrive.py 1qKSgejNeNczgNNiCn9ZF_o55GFk1DjY_ yolov3-tiny.pt
+python /home/eiy_research_59/download_google_drive/download_gdrive.py 1vFlbJ_dXPvtwaLLOu-twnjK4exdFiQ73 yolov3-spp.pt
+python /home/eiy_research_59/download_google_drive/download_gdrive.py 11uy0ybbOXA2hc-NJkJbbbkDwNX1QZDlz yolov3.pt
+python /home/eiy_research_59/download_google_drive/download_gdrive.py 1qKSgejNeNczgNNiCn9ZF_o55GFk1DjY_ yolov3-tiny.pt
