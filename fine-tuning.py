@@ -50,7 +50,7 @@ def train(
         batch_size=8,
         accumulate=8,  # effective bs = batch_size * accumulate = 8 * 8 = 64
         freeze_backbone=False,
-        outdir='fine-tuning-out',
+        outdir='/home/eiy_research_59/output/fine-tuning-out',
         pretrained_weight='weights/yolov3.pt'
 ):
     init_seeds()
@@ -102,7 +102,7 @@ def train(
                 p.requires_grad = True if p.shape[0] == nf else False
 
         else:  # resume from latest.pt
-            chkpt = torch.load(latest, map_location=device)  # load checkpoint
+            chkpt = torch.load(pretrained_weight, map_location=device)  # load checkpoint
             model.load_state_dict(chkpt['model'])
 
         start_epoch = chkpt['epoch'] + 1
