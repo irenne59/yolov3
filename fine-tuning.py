@@ -53,6 +53,7 @@ def train(
         outdir='/home/eiy_research_59/output/fine-tuning-out',
         pretrained_weight='weights/yolov3.pt'
 ):
+    print('== Start training ==')
     init_seeds()
 
     weights =  'weights' + os.sep
@@ -73,20 +74,25 @@ def train(
     img_size_test = img_size  # image size for testing
     multi_scale = not opt.single_scale
 
+    print('== Check if it is a multiscale training ==')
     if multi_scale:
+        print('== ')
         img_size_min = round(img_size / 32 / 1.5)
         img_size_max = round(img_size / 32 * 1.5)
         img_size = img_size_max * 32  # initiate with maximum multi_scale size
 
     # Configure run
+    print ('== Configure run ==')
     data_dict = parse_data_cfg(data_cfg)
     train_path = data_dict['train']
     nc = int(data_dict['classes'])  # number of classes
 
     # Initialize model
+    print('== Initialize model ==')
     model = Darknet(cfg).to(device)
 
     # Optimizer
+    print('== Optimizer ==')
     optimizer = optim.SGD(model.parameters(), lr=hyp['lr0'], momentum=hyp['momentum'], weight_decay=hyp['weight_decay'])
 
     cutoff = -1  # backbone reaches to cutoff layer
@@ -95,6 +101,7 @@ def train(
     nf = int(model.module_defs[model.yolo_layers[0] - 1]['filters'])  # yolo layer size (i.e. 255)
     if opt.resume or opt.transfer:  # Load previously saved model
         if opt.transfer:  # Transfer learning
+            print('== Load transfer learning model ==')
             chkpt = torch.load(pretrained_weight, map_location=device)
             model.load_state_dict({k: v for k, v in chkpt['model'].items() if v.numel() > 1 and v.shape[0] != 255},
                                   strict=False)
@@ -102,6 +109,7 @@ def train(
                 p.requires_grad = True if p.shape[0] == nf else False
 
         else:  # resume from latest.pt
+            print ('== Resume from latest model ==')
             chkpt = torch.load(pretrained_weight, map_location=device)  # load checkpoint
             model.load_state_dict(chkpt['model'])
 
@@ -112,12 +120,14 @@ def train(
         del chkpt
 
     else:  # Initialize model with backbone (optional)
+        print('== Training from scratch ==')
         if '-tiny.cfg' in cfg:
             cutoff = load_darknet_weights(model, weights + 'yolov3-tiny.conv.15')
         else:
             cutoff = load_darknet_weights(model, weights + 'darknet53.conv.74')
 
         # Remove old results
+        print('== Remove old results ==')
         for f in glob.glob(outdir + '/*_batch*.jpg') + glob.glob(outdir + '/results.txt'):
             os.remove(f)
 
@@ -126,6 +136,7 @@ def train(
     # lf = lambda x: 10 ** (hyp['lrf'] * x / epochs)  # exp ramp
     # lf = lambda x: 1 - 10 ** (hyp['lrf'] * (1 - x / epochs))  # inverse exp ramp
     # scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lf)
+    print('== Scheduler ==')
     scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=[round(opt.epochs * x) for x in (0.8, 0.9)], gamma=0.1)
     scheduler.last_epoch = start_epoch - 1
 
@@ -141,6 +152,7 @@ def train(
     # plt.savefig('LR.png', dpi=300)
 
     # Dataset
+    print('== Load Dataset ==')
     rectangular_training = False
     dataset = LoadImagesAndLabels(train_path,
                                   img_size,
@@ -150,6 +162,7 @@ def train(
 
     # Initialize distributed training
     if torch.cuda.device_count() > 1:
+        print('== Initialize distributed training ==')
         dist.init_process_group(backend='nccl',  # 'distributed backend'
                                 init_method='tcp://127.0.0.1:9999',  # distributed training init method
                                 world_size=1,  # number of nodes for distributed training
@@ -159,6 +172,7 @@ def train(
         # sampler = torch.utils.data.distributed.DistributedSampler(dataset)
 
     # Dataloader
+    print('== Data Loader ==')
     dataloader = DataLoader(dataset,
                             batch_size=batch_size,
                             num_workers=opt.num_workers,
@@ -169,6 +183,7 @@ def train(
     # Mixed precision training https://github.com/NVIDIA/apex
     mixed_precision = True
     if mixed_precision:
+        print('== Mixed precision training ==')
         try:
             from apex import amp
             model, optimizer = amp.initialize(model, optimizer, opt_level='O1')
@@ -176,9 +191,13 @@ def train(
             mixed_precision = False
 
     # Start training
+    print('== Attach hyperparameters to model ==')
     model.hyp = hyp  # attach hyperparameters to model
     # model.class_weights = labels_to_class_weights(dataset.labels, nc).to(device)  # attach class weights
+    print('== Model summary ==')
     model_info(model, report='summary')  # 'full' or 'summary'
+
+    print('== Start training ==')
     nb = len(dataloader)
     maps = np.zeros(nc)  # mAP per class
     results = (0, 0, 0, 0, 0)  # P, R, mAP, F1, test_loss
@@ -260,20 +279,24 @@ def train(
             pbar.set_description(s)  # print(s)
 
         # Report time
+        print('== Report time ==')
         dt = (time.time() - t0) / 3600
         print('%g epochs completed in %.3f hours.' % (epoch - start_epoch + 1, dt))
 
         # Calculate mAP (always test final epoch, skip first 5 if opt.nosave)
         if not (opt.notest or (opt.nosave and epoch < 10)) or epoch == epochs - 1:
+            print('== Calculate mAP ==')
             with torch.no_grad():
                 results, maps = test.test(cfg, data_cfg, batch_size=batch_size, img_size=img_size_test, model=model,
                                           conf_thres=0.5)
 
         # Write epoch results
+        print('== Write epoch results ==')
         with open(outdir + '/results.txt', 'a') as file:
             file.write(s + '%11.3g' * 5 % results + '\n')  # P, R, mAP, F1, test_loss
 
         # Update best loss
+        print('== Update best loss ==')
         test_loss = results[4]
         if test_loss < best_loss:
             best_loss = test_loss
@@ -281,6 +304,7 @@ def train(
         # Save training results
         save = (not opt.nosave) or (epoch == epochs - 1)
         if save:
+            print('== Save training results ==')
             # Create checkpoint
             chkpt = {'epoch': epoch,
                      'best_loss': best_loss,
@@ -306,6 +330,7 @@ def train(
 
 
 def print_mutation(hyp, results):
+    print('Write mutation results')
     # Write mutation results
     a = '%11s' * len(hyp) % tuple(hyp.keys())  # hyperparam keys
     b = '%11.4g' * len(hyp) % tuple(hyp.values())  # hyperparam values
