@@ -266,7 +266,7 @@ def train(
         # Calculate mAP (always test final epoch, skip first 5 if opt.nosave)
         if not (opt.notest or (opt.nosave and epoch < 10)) or epoch == epochs - 1:
             with torch.no_grad():
-                results, maps = test.test(cfg, data_cfg, outdir + '/latest.pt', batch_size=batch_size, img_size=img_size_test, model=model,
+                results, maps = test.test(cfg, data_cfg, batch_size=batch_size, img_size=img_size_test, model=model,
                                           conf_thres=0.5)
 
         # Write epoch results
@@ -360,7 +360,7 @@ if __name__ == '__main__':
                     outdir = opt.outdir, 
                     pretrained_weight = opt.pretrainedweight)
 
-    plot_results(opt.outdir, 0, opt.epochs)
+    #plot_results(opt.outdir, 0, opt.epochs)
     # Evolve hyperparameters (optional)
     if opt.evolve:
         gen = 1000  # generations to evolve
