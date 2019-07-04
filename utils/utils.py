@@ -272,6 +272,7 @@ def wh_iou(box1, box2):
 
 
 def compute_loss(p, targets, model, giou_loss=False):  # predictions, targets, model
+    print('Start computing loss...')
     ft = torch.cuda.FloatTensor if p[0].is_cuda else torch.Tensor
     lxy, lwh, lcls, lconf = ft([0]), ft([0]), ft([0]), ft([0])
     txy, twh, tcls, tbox, indices, anchor_vec = build_targets(model, targets)
@@ -658,15 +659,16 @@ def plot_targets_txt():  # from utils.utils import *; plot_targets_txt()
     plt.savefig('targets.jpg', dpi=300)
 
 
-def plot_results(outdir, start=0, stop=0):  # from utils.utils import *; plot_results()
+def plot_results(inputPath, outputPath, start=0, stop=0):  # from utils.utils import *; plot_results()
     # Plot training results files 'results*.txt'
     # import os; os.system('wget https://storage.googleapis.com/ultralytics/yolov3/results_v3.txt')
 
+    print('Plot result of ' + inputPath)
     fig, ax = plt.subplots(2, 5, figsize=(14, 7))
     ax = ax.ravel()
     s = ['X + Y', 'Width + Height', 'Confidence', 'Classification', 'Train Loss', 'Precision', 'Recall', 'mAP', 'F1',
          'Test Loss']
-    for f in sorted(glob.glob(outdir + '/results.txt') + glob.glob(outdir + '/results.txt')):
+    for f in sorted(glob.glob(inputPath) + glob.glob(inputPath)):
         results = np.loadtxt(f, usecols=[2, 3, 4, 5, 6, 9, 10, 11, 12, 13]).T
         n = results.shape[1]  # number of rows
         x = range(start, min(stop, n) if stop else n)
@@ -675,4 +677,4 @@ def plot_results(outdir, start=0, stop=0):  # from utils.utils import *; plot_re
             ax[i].set_title(s[i])
     fig.tight_layout()
     ax[4].legend()
-    fig.savefig(outdir + '/results.png', dpi=300)
+    fig.savefig(outputPath, dpi=300)
