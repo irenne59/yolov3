@@ -191,7 +191,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='test.py')
     parser.add_argument('--batch-size', type=int, default=16, help='size of each image batch')
     parser.add_argument('--cfg', type=str, default='/home/eiy_research_59/dbmodel221/yolov3.cfg', help='cfg file path')
-    parser.add_argument('--data-cfg', type=str, default='/home/eiy_research_59/dbmodel211/dbmodel221.data', help='coco.data file path')
+    parser.add_argument('--data-cfg', type=str, default='/home/eiy_research_59/dbmodel221/dbmodel221.data', help='coco.data file path')
     parser.add_argument('--weights', type=str, default='/home/eiy_research_59/output/fine-tuning-out_20190704_144855/best.pt', help='path to weights file')
     parser.add_argument('--iou-thres', type=float, default=0.5, help='iou threshold required to qualify as detected')
     parser.add_argument('--conf-thres', type=float, default=0.5, help='object confidence threshold')
